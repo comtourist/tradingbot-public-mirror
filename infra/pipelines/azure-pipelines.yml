@@ -56,3 +56,26 @@ steps:
       docker --version
       docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_TAG) .
     displayName: "Build Docker image"
+
+  - script: |
+      set -e
+      echo "Installing gitleaks v$(GITLEAKS_VERSION)"
+      curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v$(GITLEAKS_VERSION)/gitleaks_$(GITLEAKS_VERSION)_linux_x64.tar.gz
+      tar -xzf gitleaks.tar.gz gitleaks
+      chmod +x ./gitleaks
+      ./gitleaks version
+
+      echo "Running gitleaks scan..."
+      ./gitleaks detect \
+        --redact \
+        --config .gitleaks.toml \
+        --exit-code 1 \
+        --report-format sarif \
+        --report-path gitleaks.sarif
+    displayName: "Secret scan (gitleaks)"
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: "gitleaks.sarif"
+      ArtifactName: "gitleaks-report"
+    condition: always()
