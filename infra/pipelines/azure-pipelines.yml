@@ -15,10 +15,23 @@ variables:
   PYTHON_VERSION: "3.11"
   DOCKER_IMAGE_NAME: "tradingbot"
   DOCKER_TAG: "$(Build.BuildId)"
+  GITLEAKS_VERSION: "8.18.4"
 
 steps:
   - checkout: self
     fetchDepth: 0
+
+  - script: |
+      set -e
+      echo "Installing gitleaks v$(GITLEAKS_VERSION)"
+      curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v$(GITLEAKS_VERSION)/gitleaks_$(GITLEAKS_VERSION)_linux_x64.tar.gz
+      tar -xzf gitleaks.tar.gz gitleaks
+      chmod +x ./gitleaks
+      ./gitleaks version
+
+      echo "Running gitleaks scan..."
+      ./gitleaks detect --redact --config .gitleaks.toml --exit-code 1
+    displayName: "Secret scan (gitleaks)"
 
   - task: UsePythonVersion@0
     inputs:
