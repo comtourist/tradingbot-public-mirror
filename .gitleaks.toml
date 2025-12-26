@@ -11,6 +11,5 @@ paths = [
 # Add patterns you *expect* to appear in docs/examples (keep tight)
 regexes = [
   '''changeme''',
-  '''example''',
   '''not-a-real-key'''
 ]
