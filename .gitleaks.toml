@@ -14,3 +14,13 @@ regexes = [
   '''example''',
   '''not-a-real-key'''
 ]
+
+./gitleaks detect --redact --config .gitleaks.toml --exit-code 1 --report-format json --report-path gitleaks-report.json
+
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: "gitleaks-report.json"
+    ArtifactName: "gitleaks"
+  condition: always()
+  displayName: "Publish gitleaks report"
