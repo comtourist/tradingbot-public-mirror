@@ -1,0 +1,16 @@
+title = "TradingBot gitleaks config"
+
+# Reduce noise for common placeholder examples
+[allowlist]
+description = "Allow placeholder/example secret files and known-safe patterns"
+paths = [
+  '''\.env\.example$''',
+  '''docs/.*'''
+]
+
+# Add patterns you *expect* to appear in docs/examples (keep tight)
+regexes = [
+  '''changeme''',
+  '''example''',
+  '''not-a-real-key'''
+]
