@@ -1,0 +1,45 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  PYTHON_VERSION: "3.11"
+  DOCKER_IMAGE_NAME: "tradingbot"
+  DOCKER_TAG: "$(Build.BuildId)"
+
+steps:
+  - checkout: self
+    fetchDepth: 0
+
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: "$(PYTHON_VERSION)"
+    displayName: "Use Python $(PYTHON_VERSION)"
+
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+      pip install -r requirements-dev.txt
+    displayName: "Install dependencies"
+
+  - script: |
+      ruff check .
+    displayName: "Lint (ruff)"
+
+  - script: |
+      pytest -q
+    displayName: "Run tests (pytest)"
+
+  - script: |
+      docker --version
+      docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_TAG) .
+    displayName: "Build Docker image"
