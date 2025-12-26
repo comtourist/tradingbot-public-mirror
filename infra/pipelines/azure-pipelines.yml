@@ -30,8 +30,20 @@ steps:
       ./gitleaks version
 
       echo "Running gitleaks scan..."
-      ./gitleaks detect --redact --config .gitleaks.toml --exit-code 1
+      ./gitleaks detect \
+        --redact \
+        --config .gitleaks.toml \
+        --exit-code 1 \
+        --report-format sarif \
+        --report-path gitleaks.sarif
     displayName: "Secret scan (gitleaks)"
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: "gitleaks.sarif"
+      ArtifactName: "gitleaks-report"
+    condition: always()
+    displayName: "Publish gitleaks report"
 
   - task: UsePythonVersion@0
     inputs:
