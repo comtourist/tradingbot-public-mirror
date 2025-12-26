@@ -1,6 +1,8 @@
 title = "TradingBot gitleaks config"
 
-# Reduce noise for common placeholder examples
+[extend]
+useDefault = true
+
 [allowlist]
 description = "Allow placeholder/example secret files and known-safe patterns"
 paths = [
@@ -8,19 +10,7 @@ paths = [
   '''docs/.*'''
 ]
 
-# Add patterns you *expect* to appear in docs/examples (keep tight)
 regexes = [
   '''changeme''',
-  '''example''',
   '''not-a-real-key'''
 ]
-
-./gitleaks detect --redact --config .gitleaks.toml --exit-code 1 --report-format json --report-path gitleaks-report.json
-
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: "gitleaks-report.json"
-    ArtifactName: "gitleaks"
-  condition: always()
-  displayName: "Publish gitleaks report"
