@@ -1,2 +1,6 @@
 pytest
 ruff
+pytest-cov
+mypy
+types-requests
+pip-audit

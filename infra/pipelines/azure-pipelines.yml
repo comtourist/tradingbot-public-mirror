@@ -9,7 +9,7 @@ pr:
       - main
 
 pool:
-  vmImage: "ubuntu-latest"
+  vmImage: ubuntu-latest
 
 variables:
   PYTHON_VERSION: "3.11"
@@ -21,16 +21,20 @@ steps:
   - checkout: self
     fetchDepth: 0
 
+  # -------------------------------------------------
+  # Secret scanning (gitleaks) + SARIF artifact
+  # -------------------------------------------------
   - script: |
       set -e
+
       echo "Installing gitleaks v$(GITLEAKS_VERSION)"
-      curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v$(GITLEAKS_VERSION)/gitleaks_$(GITLEAKS_VERSION)_linux_x64.tar.gz
+      curl -sSL -o gitleaks.tar.gz \
+        https://github.com/gitleaks/gitleaks/releases/download/v$(GITLEAKS_VERSION)/gitleaks_$(GITLEAKS_VERSION)_linux_x64.tar.gz
       tar -xzf gitleaks.tar.gz gitleaks
-      chmod +x ./gitleaks
+      chmod +x gitleaks
       ./gitleaks version
 
       echo "Running gitleaks scan (writing SARIF report)..."
-      # Do not fail immediately so we can publish the report even on findings
       set +e
       ./gitleaks detect \
         --redact \
@@ -44,13 +48,11 @@ steps:
 
       # Ensure the SARIF file exists so artifact publishing never fails
       if [ ! -f gitleaks.sarif ]; then
-        echo "gitleaks.sarif not found; creating empty SARIF placeholder."
-        cat > gitleaks.sarif << 'EOF'
-      {"$schema":"https://json.schemastore.org/sarif-2.1.0.json","version":"2.1.0","runs":[]}
-      EOF
+        echo "Creating empty SARIF placeholder"
+        echo '{"$schema":"https://json.schemastore.org/sarif-2.1.0.json","version":"2.1.0","runs":[]}' > gitleaks.sarif
       fi
 
-      # Fail the job if leaks were found (exit code 1) or if gitleaks errored (exit code 2+)
+      # Fail if leaks were found (exit 1) or if gitleaks errored (exit 2+)
       if [ "$GITLEAKS_EXIT" -ne 0 ]; then
         echo "Gitleaks detected leaks (or encountered an error). Failing the job."
         exit $GITLEAKS_EXIT
@@ -58,16 +60,19 @@ steps:
     displayName: "Secret scan (gitleaks)"
 
   - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: "gitleaks.sarif"
-      ArtifactName: "gitleaks-report"
-    condition: always()
     displayName: "Publish gitleaks report"
+    condition: always()
+    inputs:
+      PathtoPublish: gitleaks.sarif
+      ArtifactName: gitleaks-report
 
+  # -------------------------------------------------
+  # Python environment
+  # -------------------------------------------------
   - task: UsePythonVersion@0
+    displayName: "Use Python $(PYTHON_VERSION)"
     inputs:
       versionSpec: "$(PYTHON_VERSION)"
-    displayName: "Use Python $(PYTHON_VERSION)"
 
   - script: |
       python -m pip install --upgrade pip
@@ -75,14 +80,38 @@ steps:
       pip install -r requirements-dev.txt
     displayName: "Install dependencies"
 
+  # -------------------------------------------------
+  # Code quality
+  # -------------------------------------------------
+  - script: |
+      ruff format --check .
+    displayName: "Format check (ruff)"
+
   - script: |
       ruff check .
     displayName: "Lint (ruff)"
 
   - script: |
-      pytest -q
-    displayName: "Run tests (pytest)"
+      mypy src
+    displayName: "Type check (mypy)"
 
+  # -------------------------------------------------
+  # Tests + coverage
+  # -------------------------------------------------
+  - script: |
+      pytest -q --cov=src --cov-report=term-missing --cov-fail-under=40
+    displayName: "Run tests with coverage"
+
+  # -------------------------------------------------
+  # Dependency security scan
+  # -------------------------------------------------
+  - script: |
+      pip-audit -r requirements.txt
+    displayName: "Dependency vulnerability scan (pip-audit)"
+
+  # -------------------------------------------------
+  # Docker build
+  # -------------------------------------------------
   - script: |
       docker --version
       docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_TAG) .
