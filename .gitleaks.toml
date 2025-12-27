@@ -9,7 +9,8 @@ description = "Allow placeholder/example secret files and known-safe patterns"
 
 paths = [
   '''\.env\.example$''',
-  '''docs/.*'''
+  '''docs/.*''',
+  '''src/common/secrets_test.txt'''
 ]
 
 regexes = [
