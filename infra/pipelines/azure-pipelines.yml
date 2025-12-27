@@ -8,123 +8,133 @@ pr:
     include:
       - main
 
-pool:
-  vmImage: ubuntu-latest
-
 variables:
   PYTHON_VERSION: "3.11"
   DOCKER_IMAGE_NAME: "tradingbot"
   DOCKER_TAG: "$(Build.BuildId)"
   GITLEAKS_VERSION: "8.18.4"
 
-steps:
-  - checkout: self
-    fetchDepth: 0
+stages:
+# =================================================
+# Stage 1: CI (quality, tests, security, docker)
+# =================================================
+- stage: CI
+  displayName: "CI"
+  jobs:
+  - job: BuildAndTest
+    displayName: "Build & Test"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: self
+      fetchDepth: 0
 
-  # -------------------------------------------------
-  # Secret scanning (gitleaks) + SARIF artifact
-  # -------------------------------------------------
-  - script: |
-      set -e
+    # ------------------------------
+    # Secret scanning (gitleaks)
+    # ------------------------------
+    - script: |
+        set -e
 
-      echo "Installing gitleaks v$(GITLEAKS_VERSION)"
-      curl -sSL -o gitleaks.tar.gz \
-        https://github.com/gitleaks/gitleaks/releases/download/v$(GITLEAKS_VERSION)/gitleaks_$(GITLEAKS_VERSION)_linux_x64.tar.gz
-      tar -xzf gitleaks.tar.gz gitleaks
-      chmod +x gitleaks
-      ./gitleaks version
+        echo "Installing gitleaks v$(GITLEAKS_VERSION)"
+        curl -sSL -o gitleaks.tar.gz \
+          https://github.com/gitleaks/gitleaks/releases/download/v$(GITLEAKS_VERSION)/gitleaks_$(GITLEAKS_VERSION)_linux_x64.tar.gz
+        tar -xzf gitleaks.tar.gz gitleaks
+        chmod +x gitleaks
+        ./gitleaks version
 
-      echo "Running gitleaks scan (writing SARIF report)..."
-      set +e
-      ./gitleaks detect \
-        --redact \
-        --config .gitleaks.toml \
-        --report-format sarif \
-        --report-path gitleaks.sarif
-      GITLEAKS_EXIT=$?
-      set -e
+        echo "Running gitleaks scan (writing SARIF report)..."
+        set +e
+        ./gitleaks detect \
+          --redact \
+          --config .gitleaks.toml \
+          --report-format sarif \
+          --report-path gitleaks.sarif
+        GITLEAKS_EXIT=$?
+        set -e
 
-      echo "Gitleaks exit code: $GITLEAKS_EXIT"
+        echo "Gitleaks exit code: $GITLEAKS_EXIT"
 
-      # Ensure the SARIF file exists so artifact publishing never fails
-      if [ ! -f gitleaks.sarif ]; then
-        echo "Creating empty SARIF placeholder"
-        echo '{"$schema":"https://json.schemastore.org/sarif-2.1.0.json","version":"2.1.0","runs":[]}' > gitleaks.sarif
-      fi
+        # Ensure SARIF exists so artifact publishing never fails
+        if [ ! -f gitleaks.sarif ]; then
+          echo "Creating empty SARIF placeholder"
+          echo '{"$schema":"https://json.schemastore.org/sarif-2.1.0.json","version":"2.1.0","runs":[]}' > gitleaks.sarif
+        fi
 
-      # Fail if leaks were found (exit 1) or if gitleaks errored (exit 2+)
-      if [ "$GITLEAKS_EXIT" -ne 0 ]; then
-        echo "Gitleaks detected leaks (or encountered an error). Failing the job."
-        exit $GITLEAKS_EXIT
-      fi
-    displayName: "Secret scan (gitleaks)"
+        # Fail if leaks were found (exit 1) or if gitleaks errored (exit 2+)
+        if [ "$GITLEAKS_EXIT" -ne 0 ]; then
+          echo "Gitleaks detected leaks (or encountered an error). Failing the job."
+          exit $GITLEAKS_EXIT
+        fi
+      displayName: "Secret scan (gitleaks)"
 
-  - task: PublishBuildArtifacts@1
-    displayName: "Publish gitleaks report"
-    condition: always()
-    inputs:
-      PathtoPublish: gitleaks.sarif
-      ArtifactName: gitleaks-report
+    - task: PublishBuildArtifacts@1
+      displayName: "Publish gitleaks report"
+      condition: always()
+      inputs:
+        PathtoPublish: gitleaks.sarif
+        ArtifactName: gitleaks-report
 
-  # -------------------------------------------------
-  # Python environment
-  # -------------------------------------------------
-  - task: UsePythonVersion@0
-    displayName: "Use Python $(PYTHON_VERSION)"
-    inputs:
-      versionSpec: "$(PYTHON_VERSION)"
+    # ------------------------------
+    # Python environment
+    # ------------------------------
+    - task: UsePythonVersion@0
+      displayName: "Use Python $(PYTHON_VERSION)"
+      inputs:
+        versionSpec: "$(PYTHON_VERSION)"
 
-  - script: |
-      python -m pip install --upgrade pip
-      pip install -r requirements.txt
-      pip install -r requirements-dev.txt
-    displayName: "Install dependencies"
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+      displayName: "Install dependencies"
 
-  # -------------------------------------------------
-  # Code quality
-  # -------------------------------------------------
-  - script: |
-      ruff format --check .
-    displayName: "Format check (ruff)"
+    # ------------------------------
+    # Code quality
+    # ------------------------------
+    - script: |
+        ruff format --check .
+      displayName: "Format check (ruff)"
 
-  - script: |
-      ruff check .
-    displayName: "Lint (ruff)"
+    - script: |
+        ruff check .
+      displayName: "Lint (ruff)"
 
-  - script: |
-      mypy --explicit-package-bases src
-    displayName: "Type check (mypy)"
+    - script: |
+        mypy --explicit-package-bases src
+      displayName: "Type check (mypy)"
 
-  # -------------------------------------------------
-  # Tests + coverage
-  # -------------------------------------------------
-  - script: |
-      pytest -q --cov=src --cov-report=term-missing --cov-fail-under=40
-    displayName: "Run tests with coverage"
+    # ------------------------------
+    # Tests + coverage
+    # ------------------------------
+    - script: |
+        pytest -q --cov=src --cov-report=term-missing --cov-fail-under=40
+      displayName: "Run tests with coverage"
 
-  # -------------------------------------------------
-  # Dependency security scan
-  # -------------------------------------------------
-  - script: |
-      pip-audit -r requirements.txt
-    displayName: "Dependency vulnerability scan (pip-audit)"
+    # ------------------------------
+    # Dependency security scan
+    # ------------------------------
+    - script: |
+        pip-audit -r requirements.txt
+      displayName: "Dependency vulnerability scan (pip-audit)"
 
-  # -------------------------------------------------
-  # Docker build
-  # -------------------------------------------------
-  - script: |
-      docker --version
-      docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_TAG) .
-    displayName: "Build Docker image"
+    # ------------------------------
+    # Docker build
+    # ------------------------------
+    - script: |
+        docker --version
+        docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_TAG) .
+      displayName: "Build Docker image"
 
-  # -------------------------------------------------
-  # github sync
-  # -------------------------------------------------
-    stages:
-  - stage: MirrorToGitHub
-    displayName: "Mirror repo to GitHub (read-only)"
-    jobs:
-  - job: mirror
+
+# =================================================
+# Stage 2: Mirror to GitHub (only after CI success)
+# =================================================
+- stage: MirrorToGitHub
+  displayName: "Mirror repo to GitHub (read-only)"
+  dependsOn: CI
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - job: Mirror
     displayName: "Push main to GitHub"
     pool:
       vmImage: ubuntu-latest
@@ -132,6 +142,7 @@ steps:
     - group: github-mirror
     steps:
     - checkout: self
+      fetchDepth: 0
       persistCredentials: true
 
     - script: |
@@ -140,7 +151,9 @@ steps:
         git config --global user.email "mirror@devops.local"
         git config --global user.name "Azure DevOps Mirror"
 
-        git remote add github https://$(GITHUB_PAT)@github.com/comtourist/tradingbot-public-mirror.git
+        # Use PAT from variable group (secret). Avoids exposing token in logs.
+        git remote remove github 2>/dev/null || true
+        git remote add github "https://$(GITHUB_PAT)@github.com/comtourist/tradingbot-public-mirror.git"
 
         git push --force github HEAD:main
       displayName: "Mirror main branch to GitHub"
