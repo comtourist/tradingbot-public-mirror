@@ -15,6 +15,9 @@ An **ETL / Data Pipeline** connects these layers, ensuring data flows from raw i
 
 The design is intentionally modular so that the platform can start small (single index, daily bars) and evolve into a multi-asset, ML-driven trading system.
 
+![Azure services](diagrams/diagram-architecture-azure-services.png)
+
+
 <figure>
     <img src="diagrams/diagram-architecture-azure-services.png"
          alt="Azure services"
