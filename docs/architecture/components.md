@@ -17,17 +17,6 @@ The design is intentionally modular so that the platform can start small (single
 
 ![Azure services](diagrams/diagram-architecture-azure-services.png)
 
-
-<figure>
-    <img src="diagrams/diagram-architecture-azure-services.png"
-         alt="Azure services"
-         width=50% height=50% 
-         style="align: center"
-         >
-    <figcaption style="text-align: center">Azure services</figcaption>
-</figure>
-
-
 ## Component-level description
 
 ### Data Provider API
