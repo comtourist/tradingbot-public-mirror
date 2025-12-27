@@ -92,7 +92,7 @@ steps:
     displayName: "Lint (ruff)"
 
   - script: |
-    mypy --explicit-package-bases src
+      mypy --explicit-package-bases src
     displayName: "Type check (mypy)"
 
   # -------------------------------------------------
