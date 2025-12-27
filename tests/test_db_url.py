@@ -3,7 +3,9 @@ import importlib
 import pytest
 
 
-def test_build_postgres_url_uses_env_and_encodes_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_build_postgres_url_uses_env_and_encodes_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     # Arrange: set env vars (including special chars to verify URL encoding)
     monkeypatch.setenv("DB_HOST", "localhost")
     monkeypatch.setenv("DB_PORT", "5432")
