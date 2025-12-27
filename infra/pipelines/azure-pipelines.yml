@@ -116,3 +116,31 @@ steps:
       docker --version
       docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_TAG) .
     displayName: "Build Docker image"
+
+  # -------------------------------------------------
+  # github sync
+  # -------------------------------------------------
+    stages:
+  - stage: MirrorToGitHub
+    displayName: "Mirror repo to GitHub (read-only)"
+    jobs:
+  - job: mirror
+    displayName: "Push main to GitHub"
+    pool:
+      vmImage: ubuntu-latest
+    variables:
+    - group: github-mirror
+    steps:
+    - checkout: self
+      persistCredentials: true
+
+    - script: |
+        set -e
+
+        git config --global user.email "mirror@devops.local"
+        git config --global user.name "Azure DevOps Mirror"
+
+        git remote add github https://$(GITHUB_PAT)@github.com/comtourist/tradingbot-public-mirror.git
+
+        git push --force github HEAD:main
+      displayName: "Mirror main branch to GitHub"
