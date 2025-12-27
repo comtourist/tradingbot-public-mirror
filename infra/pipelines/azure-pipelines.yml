@@ -136,6 +136,7 @@ stages:
   jobs:
   - job: Mirror
     displayName: "Push main to GitHub"
+    timeoutInMinutes: 5
     pool:
       vmImage: ubuntu-latest
     variables:
@@ -143,24 +144,22 @@ stages:
     steps:
     - checkout: self
       fetchDepth: 0
-      persistCredentials: true
 
     - script: |
-    set -euo pipefail
+        set -euo pipefail
 
-    # Fail fast instead of hanging on credential prompts
-    export GIT_TERMINAL_PROMPT=0
+        # Fail fast instead of hanging on credential prompts
+        export GIT_TERMINAL_PROMPT=0
 
-    git config --global user.email "mirror@devops.local"
-    git config --global user.name "Azure DevOps Mirror"
+        git config --global user.email "mirror@devops.local"
+        git config --global user.name "Azure DevOps Mirror"
 
-    git remote remove github 2>/dev/null || true
-    git remote add github "https://comtourist:$(GITHUB_PAT)@github.com/comtourist/tradingbot-public-mirror.git"
+        git remote remove github 2>/dev/null || true
+        git remote add github "https://comtourist:$(GITHUB_PAT)@github.com/comtourist/tradingbot-public-mirror.git"
 
-    # Show where we are (helps debugging, no secrets)
-    git status
-    git rev-parse HEAD
+        # Show where we are (helps debugging, no secrets)
+        git status
+        git rev-parse HEAD
 
-    git push --force github HEAD:main
-    displayName: "Mirror main branch to GitHub"
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        git push --force github HEAD:main
+      displayName: "Mirror main branch to GitHub"
