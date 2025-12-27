@@ -1,4 +1,4 @@
-# Architecture JSTB
+# Components architecture
 
 # Azure overview
 The diagram illustrates a **cloud-based financial data platform built on Microsoft Azure**, designed to ingest, store, process, analyze, and ultimately trade on historical and daily-updated market data.
