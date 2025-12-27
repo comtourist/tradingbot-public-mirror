@@ -29,20 +29,30 @@ steps:
       chmod +x ./gitleaks
       ./gitleaks version
 
-      echo "Running gitleaks scan..."
+      echo "Running gitleaks scan (writing SARIF report)..."
+      # Run without failing immediately so the report is created even when leaks exist
+      set +e
       ./gitleaks detect \
         --redact \
         --config .gitleaks.toml \
-        --exit-code 1 \
         --report-format sarif \
         --report-path gitleaks.sarif
+      GITLEAKS_EXIT=$?
+      set -e
+
+      echo "Gitleaks exit code: $GITLEAKS_EXIT"
+      # Exit 1 if leaks found (gitleaks uses exit code 1 for findings)
+      if [ "$GITLEAKS_EXIT" -ne 0 ]; then
+        echo "Gitleaks detected leaks (or encountered an error). Failing the job."
+        exit $GITLEAKS_EXIT
+      fi
     displayName: "Secret scan (gitleaks)"
 
   - task: PublishBuildArtifacts@1
     inputs:
       PathtoPublish: "gitleaks.sarif"
       ArtifactName: "gitleaks-report"
-    condition: always()
+    condition: and(always(), exists('gitleaks.sarif'))
     displayName: "Publish gitleaks report"
 
   - task: UsePythonVersion@0
