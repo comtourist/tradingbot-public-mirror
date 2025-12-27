@@ -30,7 +30,7 @@ steps:
       ./gitleaks version
 
       echo "Running gitleaks scan (writing SARIF report)..."
-      # Run without failing immediately so the report is created even when leaks exist
+      # Do not fail immediately so we can publish the report even on findings
       set +e
       ./gitleaks detect \
         --redact \
@@ -41,7 +41,16 @@ steps:
       set -e
 
       echo "Gitleaks exit code: $GITLEAKS_EXIT"
-      # Exit 1 if leaks found (gitleaks uses exit code 1 for findings)
+
+      # Ensure the SARIF file exists so artifact publishing never fails
+      if [ ! -f gitleaks.sarif ]; then
+        echo "gitleaks.sarif not found; creating empty SARIF placeholder."
+        cat > gitleaks.sarif << 'EOF'
+      {"$schema":"https://json.schemastore.org/sarif-2.1.0.json","version":"2.1.0","runs":[]}
+      EOF
+      fi
+
+      # Fail the job if leaks were found (exit code 1) or if gitleaks errored (exit code 2+)
       if [ "$GITLEAKS_EXIT" -ne 0 ]; then
         echo "Gitleaks detected leaks (or encountered an error). Failing the job."
         exit $GITLEAKS_EXIT
@@ -52,7 +61,7 @@ steps:
     inputs:
       PathtoPublish: "gitleaks.sarif"
       ArtifactName: "gitleaks-report"
-    condition: and(always(), exists('gitleaks.sarif'))
+    condition: always()
     displayName: "Publish gitleaks report"
 
   - task: UsePythonVersion@0
