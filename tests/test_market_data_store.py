@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from src.core.models import Candle, Instrument, Timeframe
+from core.models import Candle, Instrument, Timeframe
 from src.market_data.infrastructure.memory_store import InMemoryMarketDataStore
 
 
