@@ -279,7 +279,9 @@ ruff format .
 ruff check . --fix
 mypy --explicit-package-bases src
 pytest --cov=src
+pytest -q
 pip-audit -r requirements.txt
+pytest --cov=src --cov-report=term-missing
 ```
 This mirrors CI and prevents surprise failures.
 

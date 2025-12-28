@@ -14,8 +14,8 @@ def test_build_postgres_url_uses_env_and_encodes_credentials(
     monkeypatch.setenv("DB_PASSWORD", "p@ss:word/with?chars")
 
     # Important: reload modules so they pick up env var changes
-    import src.common.config as config
-    import src.common.db as db
+    import src.core.config as config
+    import src.core.db as db
 
     importlib.reload(config)
     importlib.reload(db)
@@ -40,8 +40,8 @@ def test_create_db_engine_returns_engine(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.setenv("DB_USER", "postgres")
     monkeypatch.setenv("DB_PASSWORD", "postgres")
 
-    import src.common.config as config
-    import src.common.db as db
+    import src.core.config as config
+    import src.core.db as db
 
     importlib.reload(config)
     importlib.reload(db)

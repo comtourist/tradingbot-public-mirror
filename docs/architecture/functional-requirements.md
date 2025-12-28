@@ -11,9 +11,27 @@ JSTB is a trading system that analysez patterns in historic data using Machine L
 - Version control
 - DevOps pipelines
 
+## Platform use cases
+- Ingest market data
+- Describe and test high level ideas (with AI)
+- Specify ideas that may give an edge into a strategy
+- Backtest stategy
+- Develop trading algo for sucesfully backtested startegies
+- Implement and run startegies in trading bot
+- Evaluate and improve or discontinue strategies
+ 
+
+
 ## Functional requirements
-- Historic data, for specific instruments (e.g. indexes, commodities or )
-- Focus on niche patterns (e.g. at the last friday of the month the S&P500 has a 0.54 probability to close higher) not on standard indicators (e.g. moving averages or bollinger bands)
+- Build up history and then update daily 
+- Think of specific financial instruments, timeframe minute, dating back to 2000 (if possible) 
+- Examples: Nasdaq, S&P 500, Gold, BTC, Tesla, VIX, DIXY - Add instruments over time, begin with a single instrument 
+- Define high level ideas - Examples: "find the probability of an index closing higher on a Monday after a Friday with a big loss" or "the probability of an index going down after going up for 10 straight days " 
+- So it is not so much about classic candle sticks, moving averages etc., but more about finding niche patterns in the data 
+- An LLM should translate the high level idea in an ML model 
+- The ideas should be very high level, the LLM should try different variations and variables 
+- Then if found a pattern must be translated in a trading pattern 
+- The pattern including risk management is then implemented in a trading bot that interacts with the trading platform
 
 ## Links
 [Markdown guide](https://www.markdownguide.org/cheat-sheet/)
