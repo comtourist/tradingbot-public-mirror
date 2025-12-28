@@ -1,5 +1,6 @@
-from typing import Protocol
 from datetime import datetime
+from typing import Protocol
+
 from core.models import Candle, Instrument, Timeframe
 
 
@@ -10,5 +11,4 @@ class MarketDataSourcePort(Protocol):
         timeframe: Timeframe,
         start: datetime,
         end: datetime,
-    ) -> list[Candle]:
-        ...
+    ) -> list[Candle]: ...

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
-from core.models import Instrument, Timeframe
 
+from core.models import Instrument, Timeframe
 from market_data.ports.source import MarketDataSourcePort
 from market_data.ports.store import MarketDataStorePort
 

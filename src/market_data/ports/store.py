@@ -1,4 +1,5 @@
 from typing import Protocol
+
 from core.models import Candle, Instrument, Timeframe
 
 
@@ -8,5 +9,4 @@ class MarketDataStorePort(Protocol):
         instrument: Instrument,
         timeframe: Timeframe,
         candles: list[Candle],
-    ) -> None:
-        ...
+    ) -> None: ...

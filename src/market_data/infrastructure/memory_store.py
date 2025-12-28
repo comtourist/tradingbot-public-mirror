@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
+
 from core.models import Candle, Instrument, Timeframe
 from market_data.ports import MarketDataQueryPort, MarketDataStorePort
 

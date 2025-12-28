@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from core.models import Instrument
 from typing import Protocol
+
+from core.models import Instrument
 
 
 @dataclass(frozen=True, slots=True)
