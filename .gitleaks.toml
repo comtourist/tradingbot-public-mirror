@@ -10,6 +10,9 @@ paths = [
   '''\.env\.example$''',
   '''docs/.*''',
   '''secrets_test.txt'''
+  '''^\.venv/''',
+  '''^\.venv~\/''',
+  '''^venv/''',
 ]
 
 regexes = [

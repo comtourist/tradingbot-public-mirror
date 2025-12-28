@@ -3,9 +3,11 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.venv*/
 
 # Local env
 .env
+.env.*
 
 # Local data / outputs
 data/
