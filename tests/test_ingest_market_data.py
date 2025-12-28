@@ -6,7 +6,7 @@ from src.market_data.infrastructure.fake_source import FakeMarketDataSource
 from src.market_data.infrastructure.memory_store import InMemoryMarketDataStore
 from src.market_data.ingestion.ingest_market_data import IngestMarketDataService, IngestRequest
 
-from core.models import Instrument, Timeframe
+from src.core.models import Instrument, Timeframe
 
 
 def test_ingest_market_data_writes_to_store_and_returns_count() -> None:

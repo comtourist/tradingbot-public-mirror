@@ -4,7 +4,7 @@ from datetime import datetime
 
 from src.market_data.infrastructure.memory_store import InMemoryMarketDataStore
 
-from core.models import Candle, Instrument, Timeframe
+from src.core.models import Candle, Instrument, Timeframe
 
 
 def test_store_query_filters_by_time_range() -> None:
