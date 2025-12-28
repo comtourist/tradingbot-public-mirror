@@ -9,7 +9,7 @@ description = "Allow placeholder/example secret files and known-safe patterns"
 paths = [
   '''\.env\.example$''',
   '''docs/.*''',
-  '''secrets_test.txt'''
+  '''secrets_test.txt''',
   '''^\.venv/''',
   '''^\.venv~\/''',
   '''^venv/'''
