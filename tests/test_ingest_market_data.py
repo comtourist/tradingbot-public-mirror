@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from src.core.models import Instrument, Timeframe
+from core.models import Instrument, Timeframe
 from src.market_data.infrastructure.fake_source import FakeMarketDataSource
 from src.market_data.infrastructure.memory_store import InMemoryMarketDataStore
 from src.market_data.ingestion.ingest_market_data import IngestMarketDataService, IngestRequest
