@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from core.models import Candle, Instrument, Timeframe
 from src.market_data.infrastructure.memory_store import InMemoryMarketDataStore
+
+from core.models import Candle, Instrument, Timeframe
 
 
 def test_store_query_filters_by_time_range() -> None:
