@@ -12,7 +12,7 @@ paths = [
   '''secrets_test.txt'''
   '''^\.venv/''',
   '''^\.venv~\/''',
-  '''^venv/''',
+  '''^venv/'''
 ]
 
 regexes = [
